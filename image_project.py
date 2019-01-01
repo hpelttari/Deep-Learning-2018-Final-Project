@@ -384,6 +384,8 @@ def validate(loss_vector, accuracy_vector):
         loss_vector.append(val_loss)
         accuracy = 100. * correct / len(validation_loader.dataset)
         accuracy_vector.append(accuracy)
+        with open("train/accuracy.txt","a") as file:
+            file.write("Accuracy: ",correct,"/",len(validation_loader.dataset), accuracy)
         print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             val_loss, correct, len(validation_loader.dataset), accuracy))
 
