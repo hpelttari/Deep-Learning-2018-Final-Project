@@ -1,0 +1,16 @@
+#!/bin/bash -l
+# created: Jan 1, 2019
+# author: mnoora
+#SBATCH -J DeepLearning
+#SBATCH -o data.out
+#SBATCH -e std.err
+#SBATCH -t 0-06:00:0
+#SBATCH --mail-type=END
+#SBATCH --mail-user=noora.makela2@gmail.com
+#SBATCH -p gpu
+#SBATCH -c 2
+#SBATCH --gres=gpu:1
+#SBATCH --mem=10M
+
+srun hostname
+srun sleep 60
