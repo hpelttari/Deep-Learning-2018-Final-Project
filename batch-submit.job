@@ -10,7 +10,18 @@
 #SBATCH -p gpu
 #SBATCH -c 2
 #SBATCH --gres=gpu:1
-#SBATCH --mem=10M
+#SBATCH --mem=10G
 
-srun hostname
-srun sleep 60
+cd /proj/$USER
+module purge
+module load Python/3.5.2-foss-2016b
+# mkdir python352
+virtualenv python352
+cd python352
+pip3 install torch torchvision
+source bin/activate
+cd
+cp image_project.py /proj/$USER/
+cd /proj/$USER
+python3 image_project.py
+
