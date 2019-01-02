@@ -385,7 +385,8 @@ def validate(loss_vector, accuracy_vector):
         accuracy = 100. * correct / len(validation_loader.dataset)
         accuracy_vector.append(accuracy)
         with open("train/accuracy.txt","a") as file:
-            file.write("Accuracy: ",correct,"/",len(validation_loader.dataset), accuracy)
+            text = "Accuracy: "+str(correct)+"/"+str(len(validation_loader.dataset))+ str(accuracy)
+            file.write(text)
         print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             val_loss, correct, len(validation_loader.dataset), accuracy))
 
@@ -435,5 +436,5 @@ torch.save(model.state_dict(), 'model.pkl')
 
 # In[ ]:
 
-np.savetxt('results.txt', y, fmt='%d')
+#np.savetxt('results.txt', y, fmt='%d')
 
