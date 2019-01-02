@@ -8,20 +8,21 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-user=noora.makela2@gmail.com
 #SBATCH -p gpu
-#SBATCH -c 2
-#SBATCH --gres=gpu:1
-#SBATCH --mem=10G
+#SBATCH -c 10
+#SBATCH --gres=gpu:3
+#SBATCH --mem=18G
+#SBATCH --workdir=/wrk/mnoora
 
-cd /proj/$USER
+cd /wrk/$USER
 module purge
 module load Python/3.5.2-foss-2016b
 # mkdir python352
 virtualenv python352
 cd python352
-pip3 install torch torchvision
 source bin/activate
+pip3 install torch torchvision
 cd
-cp image_project.py /proj/$USER/
-cd /proj/$USER
+cp image_project.py /wrk/$USER/
+cd /wrk/$USER
 python3 image_project.py
 

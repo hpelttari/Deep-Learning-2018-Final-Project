@@ -58,13 +58,12 @@ print("Files downloaded!")
 # In[61]:
 
 # Here goes your code ...
-get_ipython().magic('matplotlib inline')
+# get_ipython().magic('matplotlib inline')
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms
 import numpy as np
-from matplotlib import pyplot as plt
 from PIL import Image, ImageOps
 
 height = 224
@@ -314,20 +313,20 @@ print("Dataloaders created!")
 
 from torchvision import models
 
+resnet = models.resnet18()
+state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth','/wrk/mnoora')
+model.load_state_dict(state_dict)
 
-resnet = models.resnet18(pretrained = True)
 #print(resnet)
 
 
 # In[67]:
-
 #Freeze parameters
 for parameter in resnet.parameters():
     parameter.requires_grad = False
-    
+
 def get_trainable_parameters(model):
     return (parameter for parameter in model.parameters() if parameter.requires_grad)
-    
 
 #Replace the linear layer with a new one
 resnet.fc = nn.Linear(in_features=512, out_features=classes.shape[1], bias=True)
@@ -385,7 +384,7 @@ def validate(loss_vector, accuracy_vector):
         accuracy = 100. * correct / len(validation_loader.dataset)
         accuracy_vector.append(accuracy)
         with open("train/accuracy.txt","a") as file:
-            text = "Accuracy: "+str(correct)+"/"+str(len(validation_loader.dataset))+ str(accuracy)
+            text = "Accuracy: "+str(correct)+"/"+str(len(validation_loader.dataset))+ str(accuracy)+"\n"
             file.write(text)
         print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             val_loss, correct, len(validation_loader.dataset), accuracy))
@@ -393,7 +392,7 @@ def validate(loss_vector, accuracy_vector):
 
 # In[69]:
 
-epochs = 3
+epochs = 20
 lossv, accv = [], []
 for epoch in range(1, epochs + 1):
     train(epoch)
