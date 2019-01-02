@@ -315,7 +315,7 @@ from torchvision import models
 
 resnet = models.resnet18()
 state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth','/wrk/mnoora')
-model.load_state_dict(state_dict)
+resnet.load_state_dict(state_dict)
 
 #print(resnet)
 
