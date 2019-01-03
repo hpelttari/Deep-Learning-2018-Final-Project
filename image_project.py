@@ -314,16 +314,16 @@ print("Dataloaders created!")
 from torchvision import models
 
 resnet = models.resnet18()
-state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth','/wrk/mnoora')
-model.load_state_dict(state_dict)
+state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth','/wrk/$USER')
+resnet.load_state_dict(state_dict)
 
 #print(resnet)
 
 
 # In[67]:
 #Freeze parameters
-for parameter in resnet.parameters():
-    parameter.requires_grad = False
+#for parameter in resnet.parameters():
+#    parameter.requires_grad = False
 
 def get_trainable_parameters(model):
     return (parameter for parameter in model.parameters() if parameter.requires_grad)
@@ -392,7 +392,7 @@ def validate(loss_vector, accuracy_vector):
 
 # In[69]:
 
-epochs = 20
+epochs = 5
 lossv, accv = [], []
 for epoch in range(1, epochs + 1):
     train(epoch)
