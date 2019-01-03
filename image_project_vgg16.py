@@ -313,12 +313,11 @@ print("Dataloaders created!")
 
 from torchvision import models
 
-resnet = models.resnet18()
-state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth','/wrk/mnoora')
-resnet.load_state_dict(state_dict)
+model = models.vgg16()
+state_dict = torch.utils.model_zoo.load_url('https://download.pytorch.org/models/vgg16-397923af.pth','/wrk/$USER')
+model.load_state_dict(state_dict)
 
 #print(resnet)
-
 
 # In[67]:
 #Freeze parameters
@@ -329,8 +328,13 @@ def get_trainable_parameters(model):
     return (parameter for parameter in model.parameters() if parameter.requires_grad)
 
 #Replace the linear layer with a new one
-resnet.fc = nn.Linear(in_features=512, out_features=classes.shape[1], bias=True)
-model = nn.Sequential(resnet,nn.Sigmoid())
+mod = list(model.classifier.children())
+mod.pop()
+mod.append(torch.nn.Linear(4096, 14))
+new_classifier = torch.nn.Sequential(*mod,nn.Sigmoid())
+model.classifier = new_classifier
+
+
 if torch.cuda.is_available():
     print('Using GPU!')
     device = torch.device('cuda')
@@ -370,6 +374,7 @@ def train(epoch, log_interval=100):
 def validate(loss_vector, accuracy_vector):
         model.eval()
         val_loss, correct = 0, 0
+        wrong = 0
         for data, target in validation_loader:
             data = data.to(device)
             target = target.float()
@@ -378,14 +383,16 @@ def validate(loss_vector, accuracy_vector):
             val_loss += criterion(output, target).data.item()
             pred = output.data.round().float()
             correct += pred.eq(target.data).cpu().sum().item()==14
+            wrong += pred.eq(target.data).cpu().sum().item()==0
 
         val_loss /= len(validation_loader)
         loss_vector.append(val_loss)
         accuracy = 100. * correct / len(validation_loader.dataset)
         accuracy_vector.append(accuracy)
         with open("train/accuracy.txt","a") as file:
-            text = "Accuracy: "+str(correct)+"/"+str(len(validation_loader.dataset))+ str(accuracy)+"\n"
-            file.write(text)
+            text = "Accuracy: "+str(correct)+"/"+str(len(validation_loader.dataset))+", ("+ str(accuracy)+")\n"
+            text2 = "Completely wrong: "+str(wrong)+"/"+str(len(validation_loader.dataset))+"\n"
+            file.write(text+text2)
         print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             val_loss, correct, len(validation_loader.dataset), accuracy))
 
