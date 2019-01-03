@@ -29,7 +29,7 @@ import torch
 import torchvision
 from torchvision.datasets.utils import download_url
 import zipfile
-'''
+
 train_path = 'train'
 dl_file = 'dl2018-image-proj.zip'
 dl_url = 'https://users.aalto.fi/mvsjober/misc/'
@@ -41,7 +41,7 @@ if not os.path.isfile(zip_path):
 with zipfile.ZipFile(zip_path) as zip_f:
     zip_f.extractall(train_path)
     #os.unlink(zip_path)
-'''
+
 print("Files downloaded!")
 
 
