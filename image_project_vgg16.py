@@ -314,7 +314,7 @@ print("Dataloaders created!")
 from torchvision import models
 
 model = models.vgg16()
-state_dict = torch.utils.model_zoo.load_url('https://download.pytorch.org/models/vgg16-397923af.pth','/wrk/$USER')
+state_dict = torch.utils.model_zoo.load_url('https://download.pytorch.org/models/vgg16-397923af.pth','/wrk/mnoora')
 model.load_state_dict(state_dict)
 
 #print(resnet)

@@ -1,17 +1,17 @@
 #!/bin/bash -l
 # created: Jan 1, 2019
-# author: hpelttar
+# author: mnoora
 #SBATCH -J DeepLearning
 #SBATCH -o data.out
 #SBATCH -e std.err
 #SBATCH -t 0-06:00:0
 #SBATCH --mail-type=END
-#SBATCH --mail-user=hannu.pelttari@gmail.com
+#SBATCH --mail-user=noora.makela2@gmail.com
 #SBATCH -p gpu
 #SBATCH -c 20
 #SBATCH --gres=gpu:1
 #SBATCH --mem=18G
-#SBATCH --workdir=/wrk/hpelttar
+#SBATCH --workdir=/wrk/mnoora
 
 cd /wrk/$USER
 module purge
@@ -20,8 +20,6 @@ module load Python/3.5.2-foss-2016b
 virtualenv python352
 cd python352
 source bin/activate
-pip3 install torch torchvision
-cd
-cp image_project_vgg16.py /wrk/$USER/
+pip3 install torch torchvision scikit-learn
 cd /wrk/$USER
-python3 image_project_vgg16.py
+python3 image_project.py
