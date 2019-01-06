@@ -382,9 +382,9 @@ def validate(loss_vector, accuracy_vector):
             output = model(data)
             val_loss += criterion(output, target).data.item()
             pred = output.data.round().float()
-            #predList[i]= (pred.cpu()[0]).numpy()
-            #t = target.cpu()
-            #targetList[i]= (t.data[0]).numpy()
+            predList[i]= (pred.cpu()[0]).numpy()
+            t = target.cpu()
+            targetList[i]= (t.data[0]).numpy()
             correct += pred.eq(target.data).cpu().sum().item()==14
 
         val_loss /= len(validation_loader)
@@ -403,7 +403,7 @@ def validate(loss_vector, accuracy_vector):
 
 # In[69]:
 
-epochs = 10
+epochs = 6
 lossv, accv = [], []
 for epoch in range(1, epochs + 1):
     train(epoch)
