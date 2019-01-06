@@ -68,7 +68,7 @@ from PIL import Image, ImageOps
 
 height = 224
 width = 224
-num_images = 10000
+num_images = 20000
 
 data = torch.empty(num_images,height,width,3,dtype=torch.float)
 
@@ -78,7 +78,6 @@ for i in range(num_images):
     element = np.asarray(Image.open(path).resize((height,width), Image.ANTIALIAS))
     element = element/np.max(element)
     element = torch.from_numpy(element)
-    #element = torch.from_numpy(np.asarray(Image.open(path).resize((height,width), Image.ANTIALIAS)))
     if element.shape != torch.Size([height, width,3]):    #Duplicate grayscale images to all of the channels
         element = torch.stack([element,element,element],2)
     data[i] = element
@@ -287,10 +286,10 @@ class CustomDataset(Dataset):
 
 t=transforms.Compose([normalize, transforms.ToPILImage(), transforms.RandomHorizontalFlip(),transforms.RandomRotation(degrees=180), transforms.ToTensor()])
 #create a dataset from the data loaded before and the corresponding class labels
-training_data = data[0:7500]
-training_classes = classes[0:7500]
-validation_data = data[7500:len(data)]
-validation_classes = classes[7500:len(data)]
+training_data = data[0:len(data)]
+training_classes = classes[0:len(data)]
+validation_data = data[16000:len(data)]
+validation_classes = classes[16000:len(data)]
 training_set = CustomDataset(training_data.transpose(3,1).transpose(2,3),training_classes, transforms = normalize)
 validation_set = CustomDataset(validation_data.transpose(3,1).transpose(2,3),validation_classes,transforms = normalize)
 
@@ -300,11 +299,11 @@ print("Datasets created!")
 # In[65]:
 
 train_loader = torch.utils.data.DataLoader(dataset=training_set,
-                                                    batch_size=1,
+                                                    batch_size=10,
                                                     shuffle=False)
 
 validation_loader = torch.utils.data.DataLoader(dataset=validation_set,
-                                                    batch_size=1,
+                                                    batch_size=10,
                                                     shuffle=False)
 print(len(validation_loader.dataset))
 print("Dataloaders created!")
@@ -316,7 +315,7 @@ from torchvision import models
 from sklearn import metrics
 
 resnet = models.resnet18()
-state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth','/wrk/hpelttar')
+state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth', '/wrk/hpelttar')
 resnet.load_state_dict(state_dict)
 
 #print(resnet)
@@ -403,11 +402,18 @@ def validate(loss_vector, accuracy_vector):
 
 # In[69]:
 
-epochs = 6
+epochs = 1
 lossv, accv = [], []
 for epoch in range(1, epochs + 1):
     train(epoch)
-    validate(lossv, accv)
+    #validate(lossv, accv)
+
+
+
+
+
+
+
 
 
 # In[48]:
@@ -430,6 +436,20 @@ for epoch in range(1, epochs + 1):
 # 
 # The testset will be made available during the last week before the deadline and can be downloaded in the same way as the training set.
 
+test_path = 'test'
+dl_file = 'dl2018-image-test.zip'
+dl_url = 'https://users.aalto.fi/mvsjober/misc/'
+
+zip_path = os.path.join(test_path, dl_file)
+if not os.path.isfile(zip_path):
+    download_url(dl_url + dl_file, root=test_path, filename=dl_file, md5=None)
+
+with zipfile.ZipFile(zip_path) as zip_f:
+    zip_f.extractall(test_path)
+    #os.unlink(zip_path)
+
+print("Test set downloaded!")
+
 # ## Predict for test set
 # 
 # You should return your predictions for the test set in a plain text file.  The text file contains one row for each test set image.  Each row contains a binary prediction for each label (separated by a single space), 1 if it's present in the image, and 0 if not. The order of the labels is as follows (alphabetic order of the label names):
@@ -444,7 +464,61 @@ for epoch in range(1, epochs + 1):
 
 # If you have the prediction output matrix prepared in `y` you can use the following function to save it to a text file.
 
+
+height = 224
+width = 224
+num_images = 25000
+
+test_data = torch.empty(num_images-20000,height,width,3,dtype=torch.float)
+
+print("Loading data...")
+for i in range(20000,num_images):
+    path = "test/images/im"+str(i+1)+".jpg"
+    element = np.asarray(Image.open(path).resize((height,width), Image.ANTIALIAS))
+    element = element/np.max(element)
+    element = torch.from_numpy(element)
+    if element.shape != torch.Size([height, width,3]):    #Duplicate grayscale images to all of the channels
+        element = torch.stack([element,element,element],2)
+    test_data[i-20000] = element
+print("Data loading done!")
+
+class CustomTestDataset(Dataset):
+    def __init__(self, data, transforms=None):
+        self.data = data
+        self.height = data.shape[1]
+        self.width = data.shape[2]
+        self.transforms = transforms
+
+    def __getitem__(self, index):
+        image = self.data[index]
+        if self.transforms is not None:
+            image = self.transforms(image)
+        return (image)
+
+    def __len__(self):
+        return len(self.data)
+
+test_set = CustomTestDataset(test_data.transpose(3,1).transpose(2,3), transforms = normalize)
+
+test_loader = torch.utils.data.DataLoader(dataset=test_set,
+                                                    batch_size=1,
+                                                    shuffle=False)
+
+output_labels = np.zeros((5000,14))
+print(len(test_loader.dataset))
+i = 0
+for batch_idx, testData in enumerate(test_loader):
+        testData = testData.to(device)
+        output = model(testData)
+        output_labels[i] = output.data.cpu().round().int().numpy()[0]
+        i+=1
+
+       
+
+
+
+
 # In[ ]:
 
-#np.savetxt('results.txt', y, fmt='%d')
+np.savetxt('results.txt', output_labels, fmt='%d')
 
