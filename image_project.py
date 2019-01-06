@@ -68,7 +68,7 @@ from PIL import Image, ImageOps
 
 height = 224
 width = 224
-num_images = 20000
+num_images = 10000
 
 data = torch.empty(num_images,height,width,3,dtype=torch.float)
 
@@ -287,12 +287,13 @@ class CustomDataset(Dataset):
 
 t=transforms.Compose([normalize, transforms.ToPILImage(), transforms.RandomHorizontalFlip(),transforms.RandomRotation(degrees=180), transforms.ToTensor()])
 #create a dataset from the data loaded before and the corresponding class labels
-training_data = data[0:16000]
-training_classes = classes[0:16000]
-validation_data = data[16000:len(data)]
-validation_classes = classes[16000:len(data)]
-training_set = CustomDataset(training_data.transpose(3,1).transpose(2,3),training_classes,transforms = t)
+training_data = data[0:7500]
+training_classes = classes[0:7500]
+validation_data = data[7500:len(data)]
+validation_classes = classes[7500:len(data)]
+training_set = CustomDataset(training_data.transpose(3,1).transpose(2,3),training_classes, transforms = normalize)
 validation_set = CustomDataset(validation_data.transpose(3,1).transpose(2,3),validation_classes,transforms = normalize)
+
 print("Datasets created!")
 
 
@@ -305,8 +306,7 @@ train_loader = torch.utils.data.DataLoader(dataset=training_set,
 validation_loader = torch.utils.data.DataLoader(dataset=validation_set,
                                                     batch_size=1,
                                                     shuffle=False)
-
-
+print(len(validation_loader.dataset))
 print("Dataloaders created!")
 
 
@@ -316,7 +316,7 @@ from torchvision import models
 from sklearn import metrics
 
 resnet = models.resnet18()
-state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth','/wrk/mnoora')
+state_dict = torch.utils.model_zoo.load_url('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth','/wrk/hpelttar')
 resnet.load_state_dict(state_dict)
 
 #print(resnet)
@@ -364,10 +364,10 @@ def train(epoch, log_interval=100):
             loss.backward()
             # Update weights
             optimizer.step()
-            if batch_idx % log_interval == 0:
-                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                    epoch, batch_idx * len(data), len(train_loader.dataset),
-                    100. * batch_idx / len(train_loader), loss.data.item()))
+            #if batch_idx % log_interval == 0:
+             #   print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+              #      epoch, batch_idx * len(data), len(train_loader.dataset),
+               #     100. * batch_idx / len(train_loader), loss.data.item()))
             
 def validate(loss_vector, accuracy_vector):
         model.eval()
@@ -382,26 +382,28 @@ def validate(loss_vector, accuracy_vector):
             output = model(data)
             val_loss += criterion(output, target).data.item()
             pred = output.data.round().float()
-            predList[i]= pred
-            targetList[i]= target.data
+            #predList[i]= (pred.cpu()[0]).numpy()
+            #t = target.cpu()
+            #targetList[i]= (t.data[0]).numpy()
             correct += pred.eq(target.data).cpu().sum().item()==14
 
         val_loss /= len(validation_loader)
         loss_vector.append(val_loss)
         accuracy = 100. * correct / len(validation_loader.dataset)
-        f1 = metrics.f1_score(targetList, predList)
+        f1 = metrics.f1_score(targetList, predList, average = 'micro')
+        print("F1 score: "+str(f1)+"\n")
         accuracy_vector.append(accuracy)
-        with open("train/accuracy.txt","a") as file:
-            text = "Accuracy: "+str(correct)+"/"+str(len(validation_loader.dataset))+ str(accuracy)+"\n"
-            f1_text = "F1 score: "+str(f1)+"\n"
-            file.write(text+f1_text)
+        #with open("train/accuracy.txt","a") as file:
+        #    text = "Accuracy: "+str(correct)+"/"+str(len(validation_loader.dataset))+", ("+ str(accuracy)+")\n"
+            #f1_text = "F1 score: "+str(f1)+"\n"
+        #    file.write(text)#+f1_text)
         print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             val_loss, correct, len(validation_loader.dataset), accuracy))
 
 
 # In[69]:
 
-epochs = 5
+epochs = 10
 lossv, accv = [], []
 for epoch in range(1, epochs + 1):
     train(epoch)
@@ -419,7 +421,7 @@ for epoch in range(1, epochs + 1):
 
 # In[34]:
 
-torch.save(model.state_dict(), 'model.pkl')
+#torch.save(model.state_dict(), 'model.pkl')
 
 
 # The model file should now be visible in the "Home" screen of the jupyter notebooks interface.  There you should be able to select it and press "download".  [See more here on how to load the model back](https://github.com/pytorch/pytorch/blob/761d6799beb3afa03657a71776412a2171ee7533/docs/source/notes/serialization.rst) if you want to continue training later.
